@@ -1,10 +1,12 @@
 package com.library.fullstackbackend.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.library.fullstackbackend.model.User;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -28,6 +30,9 @@ public class FingerprintData {
     private User user;
     @Column(columnDefinition = "bytea")
     private byte[] biometricData;
+
+    @CreationTimestamp
+    private Instant dateRegistered;
 
 
 
@@ -90,5 +95,13 @@ public class FingerprintData {
 
     public void setBiometricData(byte[] biometricData) {
         this.biometricData = biometricData;
+    }
+
+    public Instant getDateRegistered() {
+        return dateRegistered;
+    }
+
+    public void setDateRegistered(Instant dateRegistered) {
+        this.dateRegistered = dateRegistered;
     }
 }

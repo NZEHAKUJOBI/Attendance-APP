@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.awt.image.BufferedImage;
 
 import java.io.*;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -58,7 +59,7 @@ public class SecugenController {
         public void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/fingerprint/{userId}")
                     .allowedOrigins("http://localhost:3000") // Allow requests from frontend origin
-                    .allowedMethods("GET") // Allow only PUT method
+                    .allowedMethods("Post") // Allow only PUT method
                     .allowedHeaders("*"); // Allow all headers
         }
     };
@@ -66,7 +67,7 @@ public class SecugenController {
 
 
     @CrossOrigin(origins="*", allowedHeaders="*")
-    @GetMapping("/fingerprint/{userId}")
+    @PostMapping("/fingerprint/{userId}")
     public FingerprintData fingerprint(@PathVariable UUID userId)
     {
         JSGFPLib sgfplib = new JSGFPLib();
@@ -296,7 +297,7 @@ public class SecugenController {
                 try {
                     // Find user by ID from UserRepository
                     User user = userRepository.findById(userId).orElse(null);
-                    if (user == null) {
+                    if (user == null){
                         return new FingerprintData(false, "User not found", "file not created".getBytes());
                     }
 
@@ -308,6 +309,9 @@ public class SecugenController {
                     FingerprintData fingerprintData = new FingerprintData();
                     fingerprintData.setBiometricData(Base64.getDecoder().decode(base64File));
                     fingerprintData.setUser(user);
+                    fingerprintData.setSuccess(true);
+                    fingerprintData.setMessage("Initial capture ");
+                    fingerprintData.setDateRegistered(Instant.ofEpochSecond(System.currentTimeMillis()));
                     fingerprintDataRepository.save(fingerprintData);
 
                     // Return your response
