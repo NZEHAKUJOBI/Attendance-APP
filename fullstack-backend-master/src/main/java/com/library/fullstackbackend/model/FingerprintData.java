@@ -1,4 +1,5 @@
 package com.library.fullstackbackend.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.library.fullstackbackend.model.User;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -23,6 +24,7 @@ public class FingerprintData {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore // Ignore serialization of this field
     private User user;
     @Column(columnDefinition = "bytea")
     private byte[] biometricData;
