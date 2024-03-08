@@ -23,22 +23,37 @@ export default function Home() {
     loadUsers();
   };
 
-  // const captureUser = async (id) => {
-  //   await axios.get(`http://localhost:8080/fingerprint/${id}`);
-  //   loadUsers();
-  // };
-
-  const captureUser = async (id) => {
+  const captureUser = async (userId, biometricData, loadUsers) => {
     try {
-      // Send a GET request to the biometric endpoint with the user ID
-      await axios.get(`http://localhost:8080/fingerprint/${id}`);
-      loadUsers(); // Refresh the user list after capturing biometrics
-      console.log("the id is this {id}");
+        // Send a GET request to the biometric endpoint with user ID and biometric data as query parameters
+        await axios.get(`http://localhost:8080/fingerprint/${userId}?biometricData=${biometricData}`);
+    
+        // Refresh the user list after capturing biometrics
+        loadUsers();
+    
+        console.log("Successfully captured biometrics");
     } catch (error) {
-      console.error("Error capturing biometrics:", error);
-      // Handle error if needed
+        console.error("Error capturing biometrics:", error);
+        // Handle error if needed
     }
-  };
+};
+
+  
+  
+  
+  
+
+  // const captureUser = async (id) => {
+  //   try {
+  //     // Send a GET request to the biometric endpoint with the user ID
+  //     await axios.get(`http://localhost:8080/fingerprint/${id}`);
+  //     loadUsers(); // Refresh the user list after capturing biometrics
+  //     console.log("the id is this {id}");
+  //   } catch (error) {
+  //     console.error("Error capturing biometrics:", error);
+  //     // Handle error if needed
+  //   }
+  // };
   
   
 
@@ -53,7 +68,12 @@ export default function Home() {
               <div className="mb-3 d-flex justify-content-left">
                 <BiometricCard/>
               </div>
-              <a href="#" className="btn btn-primary">Go somewhere</a>
+              <div>
+              {/* <a href="#" class="btn btn-primary" style="margin-right: 10px;">Check-in</a> */}
+              <a href="#" class="btn btn-primary">Check-out</a>
+              <a href="#" class="btn btn-primary">Check-in</a>
+              </div>
+
             </div>
           </div>
 
@@ -82,9 +102,9 @@ export default function Home() {
                       <Link className="btn btn-primary mx-2" to={`/viewuser/${user.id}`}>
                         View
                       </Link>
-                      <Link className="btn btn-outline-primary mx-2" to={`/edituser/${user.id}`}>
+                      {/* <Link className="btn btn-outline-primary mx-2" to={`/edituser/${user.id}`}>
                         Edit
-                      </Link>
+                      </Link> */}
                       <button className="btn btn-danger mx-2" onClick={() => deleteUser(user.id)}>
                         Delete
                       </button>

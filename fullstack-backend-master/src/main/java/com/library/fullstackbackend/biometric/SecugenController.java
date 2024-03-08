@@ -1,27 +1,37 @@
 package com.library.fullstackbackend.biometric;
 
+import com.library.fullstackbackend.model.FingerprintData;
 import com.library.fullstackbackend.repository.FingerprintDataRepository;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import com.library.fullstackbackend.repository.UserRepository;
+import com.library.fullstackbackend.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.*;
 
 import java.awt.image.BufferedImage;
 
 import java.io.*;
 import java.util.Base64;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
+
 import SecuGen.FDxSDKPro.jni.*;
 import SecuGen.FDxSDKPro.jni.JSGFPLib;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @RestController
 public class SecugenController {
 
     private final FingerprintDataRepository fingerprintDataRepository;
+    private final UserRepository userRepository;
 
-    public SecugenController(FingerprintDataRepository fingerprintDataRepository) {
+
+    @Autowired
+    public SecugenController(FingerprintDataRepository fingerprintDataRepository, UserRepository userRepository) {
         this.fingerprintDataRepository = fingerprintDataRepository;
+        this.userRepository = userRepository;
     }
 
     public static long check ;
@@ -41,24 +51,32 @@ public class SecugenController {
 
 
 
-    @CrossOrigin(origins="*", allowedHeaders="*")
-    @GetMapping("/fingerprint/{id}")
+    @Configuration
+    public class CorsConfig implements WebMvcConfigurer {
 
-    public FingerprintData fingerprint(@PathVariable Long id)
+        @Override
+        public void addCorsMappings(CorsRegistry registry) {
+            registry.addMapping("/fingerprint/{userId}")
+                    .allowedOrigins("http://localhost:3000") // Allow requests from frontend origin
+                    .allowedMethods("GET") // Allow only PUT method
+                    .allowedHeaders("*"); // Allow all headers
+        }
+    };
+
+
+
+    @CrossOrigin(origins="*", allowedHeaders="*")
+    @GetMapping("/fingerprint/{userId}")
+    public FingerprintData fingerprint(@PathVariable UUID userId)
     {
         JSGFPLib sgfplib = new JSGFPLib();
         if((sgfplib !=null) &&(sgfplib.jniLoadStatus!= SGFDxErrorCode.SGFDX_ERROR_JNI_DLLLOAD_FAILED))
         {
             System.out.println(sgfplib);
-
-
-
-
         }
         else{
             return new FingerprintData(false,"Device not found", "file not created".getBytes());
         }
-
         /**
          * INITIALIZING SECUGEN
          */
@@ -275,29 +293,35 @@ public class SecugenController {
                 byte[] encodedFile = Base64.getEncoder().encode(loadedFile);
                 base64File = new String(encodedFile);
 
+                try {
+                    // Find user by ID from UserRepository
+                    User user = userRepository.findById(userId).orElse(null);
+                    if (user == null) {
+                        return new FingerprintData(false, "User not found", "file not created".getBytes());
+                    }
 
-//                // Saving fingerprint data to the database
-//                FingerprintData fingerprintData = new FingerprintData();
-//                fingerprintData.setBiometricData(Base64.getDecoder().decode(base64File));
-//                // Save fingerprint data to the database
-//                fingerprintDataRepository.save(fingerprintData);
+                    // Initialize SGFPLib and other necessary variables here
 
-                // Decode the base64 fingerprint file
-                byte[] decodedBiometricData = Base64.getDecoder().decode(base64File);
+                    // Capture fingerprint image and process it
 
-                ////////////////////////////////
+                    // Save fingerprint data to the database
+                    FingerprintData fingerprintData = new FingerprintData();
+                    fingerprintData.setBiometricData(Base64.getDecoder().decode(base64File));
+                    fingerprintData.setUser(user);
+                    fingerprintDataRepository.save(fingerprintData);
+
+                    // Return your response
+                    return new FingerprintData(true, base64Image, base64File.getBytes());
+                } catch (Exception e) {
+                    // Handle exceptions
+                    e.printStackTrace();
+                    return new FingerprintData(false, "Error capturing fingerprint", "file not created".getBytes());
+                }
 
 
 
-// Create a new instance of FingerprintData
-                FingerprintData fingerprintData = new FingerprintData();
-                fingerprintData.setBiometricData(decodedBiometricData);
-                fingerprintData.setId(id);
-                System.out.println(decodedBiometricData);
 
 
-// Save the fingerprint data to the database
-                fingerprintDataRepository.save(fingerprintData);
 
 
 

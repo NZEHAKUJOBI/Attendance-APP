@@ -84,6 +84,7 @@ export default function AddUser() {
               name="fullName"
               value={fullName}
               onChange={(e) => onInputChange(e)}
+               required
             />
           </div>
             <div className="mb-3">
@@ -96,6 +97,7 @@ export default function AddUser() {
               name="designation" 
               value={designation} 
               onChange={(e) => onInputChange(e)}
+              required
             >
               <option value="">Select Designation</option>
               <option value="Data Entry Clerk">Data Entry Clerk</option>
@@ -135,8 +137,9 @@ export default function AddUser() {
                 name="facility"
                 value={facility}
                 onChange={(e) => onInputChange(e)}
+                required
               >
-                <option value="">Select a Hospital</option>
+                <option value="" required>Select a Hospital</option>
                 {hospitalList.map((hospital, index) => (
                   <option key={index} value={hospital}>
                     {hospital}
@@ -158,6 +161,7 @@ export default function AddUser() {
                 name="phone_number"
                 value={phone_number}
                 onChange={(e) => onInputChange(e)}
+                required
               />
             </div>
             

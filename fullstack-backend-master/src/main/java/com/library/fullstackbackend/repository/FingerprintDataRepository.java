@@ -1,6 +1,8 @@
 package com.library.fullstackbackend.repository;
-import com.library.fullstackbackend.biometric.FingerprintData;
+import com.library.fullstackbackend.model.FingerprintData;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface FingerprintDataRepository extends JpaRepository<FingerprintData, Long> {
+import java.util.UUID;
+
+public interface FingerprintDataRepository extends JpaRepository<FingerprintData, UUID> {
 }

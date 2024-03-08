@@ -1,14 +1,21 @@
-package com.library.fullstackbackend.biometric;
+package com.library.fullstackbackend.model;
 import com.library.fullstackbackend.model.User;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user_biometric")
 public class FingerprintData {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    public UUID id;
 
     private boolean success;
     private String message;
@@ -41,9 +48,9 @@ public class FingerprintData {
 
 
     // Default constructor (required by JPA)
-    protected FingerprintData() {}
+    public FingerprintData() {}
 
-    public FingerprintData(boolean success, String message, byte[] biometricData ) {
+    public FingerprintData(boolean success, String message, byte[] biometricData) {
         this.success = success;
         this.message = message;
         this.biometricData = biometricData;
@@ -51,11 +58,11 @@ public class FingerprintData {
 
     // Getters and setters
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
