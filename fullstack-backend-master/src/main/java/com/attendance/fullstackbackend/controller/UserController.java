@@ -1,11 +1,10 @@
-package com.library.fullstackbackend.controller;
+package com.attendance.fullstackbackend.controller;
 
-import com.library.fullstackbackend.exception.UserNotFoundException;
-import com.library.fullstackbackend.model.User;
-import com.library.fullstackbackend.repository.UserRepository;
+import com.attendance.fullstackbackend.exception.UserNotFoundException;
+import com.attendance.fullstackbackend.model.User;
+import com.attendance.fullstackbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.yaml.snakeyaml.events.Event;
 
 import java.util.List;
 import java.util.UUID;

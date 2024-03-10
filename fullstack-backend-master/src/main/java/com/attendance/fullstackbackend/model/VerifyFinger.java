@@ -1,4 +1,4 @@
-package com.library.fullstackbackend.biometric;
+package com.attendance.fullstackbackend.model;
 
 import java.util.HashMap;
 import java.util.Map;

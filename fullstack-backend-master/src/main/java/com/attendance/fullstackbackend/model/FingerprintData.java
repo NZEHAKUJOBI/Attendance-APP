@@ -1,9 +1,7 @@
-package com.library.fullstackbackend.model;
+package com.attendance.fullstackbackend.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.library.fullstackbackend.model.User;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.time.Instant;

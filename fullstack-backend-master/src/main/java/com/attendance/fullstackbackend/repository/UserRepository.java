@@ -1,6 +1,6 @@
-package com.library.fullstackbackend.repository;
+package com.attendance.fullstackbackend.repository;
 
-import com.library.fullstackbackend.model.User;
+import com.attendance.fullstackbackend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

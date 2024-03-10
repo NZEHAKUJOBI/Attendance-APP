@@ -1,4 +1,4 @@
-package com.library.fullstackbackend.exception;
+package com.attendance.fullstackbackend.exception;
 /* Created by Arjun Gautam */
 
 import org.springframework.http.HttpStatus;

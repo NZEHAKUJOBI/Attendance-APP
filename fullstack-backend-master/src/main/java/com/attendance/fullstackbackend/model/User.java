@@ -1,4 +1,4 @@
-package com.library.fullstackbackend.model;
+package com.attendance.fullstackbackend.model;
 
 import javax.persistence.*;
 import java.util.ArrayList;

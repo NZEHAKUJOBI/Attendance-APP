@@ -1,5 +1,6 @@
-package com.library.fullstackbackend.biometric;
+package com.attendance.fullstackbackend.biometric;
 
+import com.attendance.fullstackbackend.model.VerifyFinger;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

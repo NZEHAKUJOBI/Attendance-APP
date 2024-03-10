@@ -1,9 +1,9 @@
-package com.library.fullstackbackend.biometric;
+package com.attendance.fullstackbackend.controller;
 
-import com.library.fullstackbackend.model.FingerprintData;
-import com.library.fullstackbackend.repository.FingerprintDataRepository;
-import com.library.fullstackbackend.repository.UserRepository;
-import com.library.fullstackbackend.model.User;
+import com.attendance.fullstackbackend.repository.FingerprintDataRepository;
+import com.attendance.fullstackbackend.model.FingerprintData;
+import com.attendance.fullstackbackend.repository.UserRepository;
+import com.attendance.fullstackbackend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
@@ -297,8 +297,12 @@ public class SecugenController {
                 try {
                     // Find user by ID from UserRepository
                     User user = userRepository.findById(userId).orElse(null);
-                    if (user == null){
+                    if (user == null) {
                         return new FingerprintData(false, "User not found", "file not created".getBytes());
+                    }
+                    // Check if fingerprint data already exists for this user
+                    if (fingerprintDataRepository.existsById(userId)) {
+                        return new FingerprintData(false, "Biometric data already captured for this user", "file not created".getBytes());
                     }
 
                     // Initialize SGFPLib and other necessary variables here
@@ -314,13 +318,40 @@ public class SecugenController {
                     fingerprintData.setDateRegistered(Instant.ofEpochSecond(System.currentTimeMillis()));
                     fingerprintDataRepository.save(fingerprintData);
 
-                    // Return your response
-                    return new FingerprintData(true, base64Image, base64File.getBytes());
+                    // Return success response
+                    return new FingerprintData(true, "Biometric data captured successfully", "file created".getBytes());
                 } catch (Exception e) {
-                    // Handle exceptions
-                    e.printStackTrace();
-                    return new FingerprintData(false, "Error capturing fingerprint", "file not created".getBytes());
+                    // Handle any exceptions
+                    return new FingerprintData(false, "Error capturing biometrics: " + e.getMessage(), "file not created".getBytes());
                 }
+
+//                try {
+//                    // Find user by ID from UserRepository
+//                    User user = userRepository.findById(userId).orElse(null);
+//                    if (user == null){
+//                        return new FingerprintData(false, "User not found", "file not created".getBytes());
+//                    }
+//
+//                    // Initialize SGFPLib and other necessary variables here
+//
+//                    // Capture fingerprint image and process it
+//
+//                    // Save fingerprint data to the database
+//                    FingerprintData fingerprintData = new FingerprintData();
+//                    fingerprintData.setBiometricData(Base64.getDecoder().decode(base64File));
+//                    fingerprintData.setUser(user);
+//                    fingerprintData.setSuccess(true);
+//                    fingerprintData.setMessage("Initial capture");
+//                    fingerprintData.setDateRegistered(Instant.ofEpochSecond(System.currentTimeMillis()));
+//                    fingerprintDataRepository.save(fingerprintData);
+//
+//                    // Return your response
+//                    return new FingerprintData(true, base64Image, base64File.getBytes());
+//                } catch (Exception e) {
+//                    // Handle exceptions
+//                    e.printStackTrace();
+//                    return new FingerprintData(false, "Error capturing fingerprint", "file not created".getBytes());
+//                }
 
 
 
