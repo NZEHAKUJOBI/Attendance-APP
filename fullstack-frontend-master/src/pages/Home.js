@@ -8,10 +8,41 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Home() {
   const [users, setUsers] = useState([]);
   const { id } = useParams();
+  const [usersId, setUsersId] = useState([]);
+  const { userId: paramUserId } = useParams();
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+
+
+
+  useEffect(() => {
+    const loadId = async () => {
+      try {
+        const result = await axios.get("http://localhost:8080/fingerprint/biometric");
+        setUsersId(result.data);
+        console.log(usersId);
+      } catch (error) {
+        console.error("Error loading users:", error);
+      }
+    };
+
+    loadId();
+  }, []);
+
+
+
+  // const loadId = async () => {
+  //   try {
+  //     const result = await axios.get("http://localhost:8080/fingerprint/biometric");
+  //     setUsersId(result.data);
+  //   } catch (error) {
+  //     console.error("Error loading users:", error);
+  //   }
+  // };
+
 
   
 
@@ -20,6 +51,7 @@ export default function Home() {
     try {
       const result = await axios.get("http://localhost:8080/users");
       setUsers(result.data);
+      console.log(users);
     } catch (error) {
       console.error("Error loading users:", error);
     }
@@ -52,27 +84,17 @@ export default function Home() {
     }
   };
 
-  // const captureUser = async (userId) => {
-  //   try {
-  //     const response = await axios.post(`http://localhost:8080/fingerprint/${userId}`);
-  //     if (response.data.success) {
-  //       toast.success(" Biometric Captured succefully");
-  //       console.log("Successfully captured biometrics");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error capturing biometrics:", error);
-  //   }
-  // };
+
+
+
   const captureUser = async (userId) => {
     try {
-      // Check if user ID already exists in the table
-      const userExists = users.some(user => user.id === userId);
+      const userExists = usersId.some(user => user.id === userId);
       if (userExists) {
         toast.warning("Biometric already captured for this user");
-        return; // Exit function early
+        return;
       }
   
-      // If user ID doesn't exist, proceed with capturing biometrics
       const response = await axios.post(`http://localhost:8080/fingerprint/${userId}`);
       if (response.data.success) {
         toast.success("Biometric Captured successfully");
@@ -82,6 +104,10 @@ export default function Home() {
       console.error("Error capturing biometrics:", error);
     }
   };
+
+  useEffect(() => {
+    captureUser(paramUserId);
+  }, [paramUserId]);
   
 
   return (

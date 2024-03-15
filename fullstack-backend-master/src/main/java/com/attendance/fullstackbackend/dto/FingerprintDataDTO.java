@@ -1,68 +1,32 @@
-package com.attendance.fullstackbackend.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
+package com.attendance.fullstackbackend.dto;
 
-import javax.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
-@Table(name = "user_biometric")
-public class FingerprintData {
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
-    public UUID id;
-
+public class FingerprintDataDTO {
+    private UUID id;
     private boolean success;
     private String message;
-
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonIgnore // Ignore serialization of this field
-    private User user;
-    @Column(columnDefinition = "bytea")
     private byte[] biometricData;
-
-    @CreationTimestamp
     private Instant dateRegistered;
+    private UUID userId;
+    private String userName; // Assuming you want to include user's name in the DTO
 
-
-
-
-
-    public User getUser() {
-        return user;
+    // Constructors
+    public FingerprintDataDTO() {
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-
-
-
-
-
-
-
-
-    // Default constructor (required by JPA)
-    public FingerprintData() {}
-
-    public FingerprintData(boolean success, String message, byte[] biometricData) {
+    public FingerprintDataDTO(UUID id, boolean success, String message, byte[] biometricData, Instant dateRegistered, UUID userId, String userName) {
+        this.id = id;
         this.success = success;
         this.message = message;
         this.biometricData = biometricData;
+        this.dateRegistered = dateRegistered;
+        this.userId = userId;
+        this.userName = userName;
     }
 
     // Getters and setters
-
     public UUID getId() {
         return id;
     }
@@ -101,5 +65,21 @@ public class FingerprintData {
 
     public void setDateRegistered(Instant dateRegistered) {
         this.dateRegistered = dateRegistered;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

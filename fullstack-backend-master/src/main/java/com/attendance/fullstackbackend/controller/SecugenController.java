@@ -1,9 +1,11 @@
 package com.attendance.fullstackbackend.controller;
 
+import com.attendance.fullstackbackend.dto.FingerprintDataDTO;
 import com.attendance.fullstackbackend.repository.FingerprintDataRepository;
 import com.attendance.fullstackbackend.model.FingerprintData;
 import com.attendance.fullstackbackend.repository.UserRepository;
 import com.attendance.fullstackbackend.model.User;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +15,9 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -63,6 +67,28 @@ public class SecugenController {
                     .allowedHeaders("*"); // Allow all headers
         }
     };
+
+
+
+    @GetMapping("/fingerprint/biometric")
+    public List<FingerprintDataDTO> getAllFingerprintData() {
+        List<FingerprintData> fingerprintDataList = fingerprintDataRepository.findAll();
+        return fingerprintDataList.stream()
+                .map(this::convertFingerprintData)
+                .collect(Collectors.toList());
+    }
+
+    private FingerprintDataDTO convertFingerprintData(FingerprintData fingerprintData) {
+        FingerprintDataDTO dto = new FingerprintDataDTO();
+        BeanUtils.copyProperties(fingerprintData, dto);
+
+        // Set user ID if available
+        if (fingerprintData.getUser() != null) {
+            dto.setUserId(fingerprintData.getUser().getId());
+        }
+
+        return dto;
+    }
 
 
 
@@ -314,7 +340,7 @@ public class SecugenController {
                     fingerprintData.setBiometricData(Base64.getDecoder().decode(base64File));
                     fingerprintData.setUser(user);
                     fingerprintData.setSuccess(true);
-                    fingerprintData.setMessage("Initial capture ");
+                    fingerprintData.setMessage("Initial capture" );
                     fingerprintData.setDateRegistered(Instant.ofEpochSecond(System.currentTimeMillis()));
                     fingerprintDataRepository.save(fingerprintData);
 
