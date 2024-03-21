@@ -57,16 +57,6 @@ export default function Home() {
     }
   };
 
-  // const deleteUser = async (id) => {
-  //   try {
-  //     await axios.delete(`http://localhost:8080/user/${id}`);
-  //     loadUsers();
-      
-  //   } catch (error) {
-  //     console.error("Error deleting user:", error);
-  //   }
-  // };
-
   const deleteUser = async (id) => {
     try {
       // Send an HTTP DELETE request to the specified URL

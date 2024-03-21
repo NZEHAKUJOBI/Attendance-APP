@@ -1,9 +1,21 @@
-package com.attendance.fullstackbackend.biometric;
+package com.attendance.fullstackbackend.controller;
 
+import com.attendance.fullstackbackend.dto.FingerprintDataDTO;
+import com.attendance.fullstackbackend.model.FingerprintData;
 import com.attendance.fullstackbackend.model.VerifyFinger;
+import com.attendance.fullstackbackend.repository.FingerprintDataRepository;
+import com.attendance.fullstackbackend.repository.StoredTemplate;
+import com.attendance.fullstackbackend.repository.UserRepository;
+import com.attendance.fullstackbackend.repository.VerifyFingerDataRepository;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import com.attendance.fullstackbackend.controller.SecugenManager;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,9 +24,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.*;
 // import java.util.Scanner;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 // import javax.imageio.ImageIO;
 import SecuGen.FDxSDKPro.jni.*;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 @RestController
@@ -34,11 +52,53 @@ public class VerifyFingerprintController {
     FileOutputStream fout = null;
     PrintStream fp = null;
 
+    private final FingerprintDataRepository fingerprintDataRepository;
+    private final UserRepository userRepository;
+    private final VerifyFingerDataRepository verifyFingerDataRepository;
+    public static String MATCHED_PERSON_UUID;
+    private final SecugenManager secugenManager;
+
+    private static String BIOMETRIC_DATA;
+
+
+    @Autowired
+    public VerifyFingerprintController(FingerprintDataRepository fingerprintDataRepository, UserRepository userRepository, SecugenManager secugenManager, VerifyFingerDataRepository verifyFingerDataRepository) {
+        this.fingerprintDataRepository = fingerprintDataRepository;
+        this.userRepository = userRepository;
+        this.secugenManager = secugenManager;
+        this.verifyFingerDataRepository = verifyFingerDataRepository;
+
+
+    }
+
+
+    @GetMapping("/fingerprint/list")
+    public List<FingerprintDataDTO> getAllFingerprintData() {
+        List<FingerprintData> fingerprintDataList = fingerprintDataRepository.findAll();
+        return fingerprintDataList.stream()
+                .map(this::convertFingerprintData)
+                .collect(Collectors.toList());
+    }
+
+    private FingerprintDataDTO convertFingerprintData(FingerprintData fingerprintData) {
+        FingerprintDataDTO dto = new FingerprintDataDTO();
+        BeanUtils.copyProperties(fingerprintData, dto);
+
+        // Set user ID if available
+        if (fingerprintData.getUser() != null) {
+            dto.setUserId(fingerprintData.getUser().getId());
+        }
+
+        return dto;
+    }
+
+
+
     // @CrossOrigin(origins="http://localhost:3000")
     @CrossOrigin(origins="*")
     @PostMapping("/verify")
     @ResponseBody
-    public VerifyFinger verifyprint(@RequestBody String minutae)
+    public VerifyFinger verifyprint()
     {
         JSGFPLib sgfplib = new JSGFPLib();
         if((sgfplib !=null) &&(sgfplib.jniLoadStatus!= SGFDxErrorCode.SGFDX_ERROR_JNI_DLLLOAD_FAILED))
@@ -48,53 +108,14 @@ public class VerifyFingerprintController {
         else{
             return new VerifyFinger(false,"Fingerprint device not found");
         }
-
-        /**
-         * INITIALIZING SECUGEN
-         */
         err= sgfplib.Init(SGFDxDeviceName.SG_DEV_AUTO);
 
-        /**
-         * GETING MINEX VERSION
-         */
         int[] extractorVersion = new int[1];
         int[] matcherVersion = new int[1];
-        /**
-         * CALL MINEX VERSION GetMinexVersion()
-         */
         err = sgfplib.GetMinexVersion(extractorVersion, matcherVersion);
-        /**
-         * EXTRACTOR VERSION , extractorVersion[0]
-         * MATCHER VERSION ,   matcherVersion[0]
-         */
-
-        /**
-         * OPENING SECUGEN FINGER PRINT DEVICE , OpenDevice(number PORT)
-         *  AUTO DETECT PORT , OpenDevice(SGPPPortAddr.AUTO_DETECT)
-         */
         err = sgfplib.OpenDevice(2);
-
-        /**
-         * GET DEVICE INFO
-         */
-
         SGDeviceInfoParam deviceInfo = new SGDeviceInfoParam();
         err = sgfplib.GetDeviceInfo(deviceInfo);
-        /**
-         * System.out.println(err)
-         * SERIAL NUMBER , new String(deviceInfo.deviceSN())
-         * BRIGHTNESS , deviceInfo.brightness
-         * PORT , deviceInfo.comPort
-         * SPEED , deviceInfo.comSpeed
-         * CONTRAST , deviceInfo.contrast
-         * DEVICEID , deviceInfo.deviceID
-         * FWVERSION , deviceInfo.FWVersion
-         * GAIN , deviceInfo.gain
-         * IMAGE DPI , deviceInfo.imageDPI
-         * IMAGE HEIGHT , deviceInfo.imageHeight
-         * IMAGE WIDTH , deviceInfo.imageWidth
-         */
-
         int[] quality = new int[1];
         int[] maxSize = new int[1];
         int[] size = new int[1];
@@ -193,12 +214,12 @@ public class VerifyFingerprintController {
             /**
              * DECODING BASE64 ENCODED MINUTAE DATA
              */
-            byte[] decodeDMinutae = Base64.getDecoder().decode(minutae);
+//            byte[] decodeDMinutae = Base64.getDecoder().decode();
 
             /**
              * LOADING DECODED MINUTAE TO BUFFER
              */
-            ISOminutiaeBuffer2=decodeDMinutae;
+//            ISOminutiaeBuffer2=decodeDMinutae;
         }
         catch(Exception e)
         {
@@ -220,5 +241,50 @@ public class VerifyFingerprintController {
 
         return new VerifyFinger(matched[0], "Match score : "+score[0]);
     }
+    public Boolean getMatch(Set<StoredTemplate> storedTemplates, byte[] scannedTemplate) {
+        Boolean matched = Boolean.FALSE;
+        MATCHED_PERSON_UUID = null;
+        for (StoredTemplate biometric : storedTemplates) {
+            if(null != biometric.getUser()) {
+                MATCHED_PERSON_UUID = biometric.getUser();
+                //LOG.info("person biometric is {}", MATCHED_PERSON_UUID);
+            }
+            if (biometric.getBiometricData() != null && biometric.getBiometricData().length != 0) {
+                matched = secugenManager.matchTemplate(biometric.getBiometricData(), scannedTemplate);
+                BIOMETRIC_DATA = BIOMETRIC_DATA;
+            } else if (biometric.getBiometricData() != null && biometric.getBiometricData().length != 0) {
+                matched = secugenManager.matchTemplate(biometric.getBiometricData(), scannedTemplate);
+                BIOMETRIC_DATA = BIOMETRIC_DATA;
+            }
+
+            if(matched)break;
+        }
+        return matched;
+    }
+
+    private Boolean setMatch(byte[] capturedFinger, byte[] dbPrint, String personUuid){
+        MATCHED_PERSON_UUID = personUuid;
+        return secugenManager.matchTemplate(capturedFinger, dbPrint);
+    }
+
+
+
+    @Configuration
+    public class CorsConfig implements WebMvcConfigurer {
+
+        @Override
+        public void addCorsMappings(CorsRegistry registry) {
+            registry.addMapping("/verify")
+                    .allowedOrigins("http://localhost:3000") // Allow requests from frontend origin
+                    .allowedMethods("Post") // Allow only PUT method
+                    .allowedHeaders("*"); // Allow all headers
+
+            registry.addMapping("/fingerprint/list")
+                    .allowedOrigins("http://localhost:3000") // Allow requests from frontend origin
+                    .allowedMethods("Get") // Allow only GET method
+                    .allowedHeaders("*"); // Allow all headers
+        }
+    };
+
 
 }

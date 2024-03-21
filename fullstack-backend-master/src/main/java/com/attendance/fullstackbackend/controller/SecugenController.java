@@ -65,6 +65,11 @@ public class SecugenController {
                     .allowedOrigins("http://localhost:3000") // Allow requests from frontend origin
                     .allowedMethods("Post") // Allow only PUT method
                     .allowedHeaders("*"); // Allow all headers
+
+            registry.addMapping("/fingerprint/biometric")
+                    .allowedOrigins("http://localhost:3000") // Allow requests from frontend origin
+                    .allowedMethods("Get") // Allow only GET method
+                    .allowedHeaders("*"); // Allow all headers
         }
     };
 
